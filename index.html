@@ -163,13 +163,14 @@
 
                 var data = reader.result.split(/\r?\n/);
                 users = [];
-                traits = ["time"];
+                traits = [];
                 values = [];
                 timeBounds = [];
                 var user;
                 var userIdx;
                 var time;
                 var first = true;
+                var newUser = false;
                 data.forEach(function (line) {
                     if (line.length == 0) {
                         return;
@@ -186,25 +187,28 @@
 
                     if (!users.includes(user)) {
                         users.push(user);
+                        newUser = true;
                     }
                     userIdx = users.indexOf(user);
 
-                    if (!values[userIdx]) {
+                    if (newUser) {
                         values[userIdx] = [];
+                        traits[userIdx] = ["time"];
                     }
 
                     lineArray = [time]
 
                     line.split(", ").forEach(function (data) {
                         lineArray.push(data.substring(data.lastIndexOf(" ") + 1));
-                        if (first) {
-                            traits.push(data.substring(0, data.lastIndexOf(" ")));
+                        if (newUser) {
+                            traits[userIdx].push(data.substring(0, data.lastIndexOf(" ")));
                         }
                     });
 
                     values[userIdx].push(lineArray);
 
                     first = false;
+                    newUser = false;
                 });
 
                 timeBounds[1] = time;
@@ -218,7 +222,7 @@
         function displayTable(userIdx) {
             var finalContents = "<table><thead><tr>";
 
-            traits.forEach(function (trait) {
+            traits[userIdx].forEach(function (trait) {
                 finalContents += "<th>" + trait + "</th>";
             });
 
