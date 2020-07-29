@@ -171,6 +171,10 @@
                 var time;
                 var first = true;
                 data.forEach(function (line) {
+                    if (line.length == 0) {
+                        return;
+                    }
+
                     time = line.substring(0, line.indexOf(" "));
                     line = line.substring(line.indexOf(" ") + 1);
                     user = line.substring(0, line.indexOf(" "));
@@ -245,7 +249,7 @@
 
             document.querySelector("#graph").innerHTML = finalContents;
             document.querySelector("#graph").setAttribute("height", offsetY - 50);
-            
+
             for (var i = 0; i < users.length; i++) {
                 drawTicks(i);
             }
