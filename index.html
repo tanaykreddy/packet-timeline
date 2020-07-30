@@ -91,6 +91,10 @@
             cursor: pointer;
         }
 
+        .tick:hover {
+            cursor:pointer;
+        }
+
         /* Table Box Styling */
         #output-table {
             background-color: rgba(0, 0, 255, 0.082);
@@ -127,6 +131,10 @@
             background-clip: padding-box;
             z-index: 20;
         }
+
+        .selected td {
+            background-color: #A4C2F4;
+        }
     </style>
 </head>
 
@@ -152,7 +160,11 @@
         var users;
         var traits;
         var values;
+
         var timeBounds;
+
+        var prevUserIdx;
+        var prevPacketIdx;
 
         //Processes file uploads
         document.querySelector("#upload-button").addEventListener('input', function () {
@@ -162,15 +174,20 @@
                 document.querySelector("#upload-label").innerHTML = "Uploaded " + file.name;
 
                 var data = reader.result.split(/\r?\n/);
+
                 users = [];
                 traits = [];
                 values = [];
                 timeBounds = [];
+                prevUserIdx = -1;
+                prevPacketIdx = -1;
+
                 var user;
                 var userIdx;
                 var time;
                 var first = true;
                 var newUser = false;
+
                 data.forEach(function (line) {
                     if (line.length == 0) {
                         return;
@@ -228,10 +245,10 @@
 
             finalContents += "</tr></thead><tbody>";
 
-            values[userIdx].forEach(function(valueArray) {
-                finalContents += "<tr>";
-                valueArray.forEach(function(value) {
-                    finalContents += "<td>" + value +"</td>";
+            values[userIdx].forEach(function (valueArray, valueIdx) {
+                finalContents += "<tr id='row-" + valueIdx + "'>";
+                valueArray.forEach(function (value) {
+                    finalContents += "<td>" + value + "</td>";
                 });
                 finalContents += "</tr>";
             });
@@ -241,13 +258,39 @@
             document.querySelector("#output-table").innerHTML = finalContents;
         }
 
+        function selectLine(userIdx, packetIdx) {
+            if (prevUserIdx != -1 && prevPacketIdx != -1) {
+                var prevTick = document.querySelector("#tick-" + prevUserIdx + "-" + prevPacketIdx);
+                prevTick.setAttribute("y1", parseFloat(prevTick.getAttribute("y1")) + 10);
+                prevTick.setAttribute("y2", parseFloat(prevTick.getAttribute("y2")) - 10);
+            }
+
+            if (prevUserIdx != userIdx) {
+                displayTable(userIdx);
+                prevPacketIdx = -1;
+            }
+
+            if (prevPacketIdx != -1) {
+                document.querySelector("#row-" + prevPacketIdx).classList.remove("selected");
+            }
+
+            document.querySelector("#row-" + packetIdx).classList.add("selected");
+
+            var curTick = document.querySelector("#tick-" + userIdx + "-" + packetIdx);
+            curTick.setAttribute("y1", parseFloat(curTick.getAttribute("y1")) - 10);
+            curTick.setAttribute("y2", parseFloat(curTick.getAttribute("y2")) + 10);
+
+            prevUserIdx = userIdx;
+            prevPacketIdx = packetIdx;
+        }
+
         function drawLines() {
             var finalContents = "";
             var offsetY = 75;
 
             for (var i = 0; i < users.length; i++) {
-                finalContents += "<text x='1%' y='" + (offsetY - 25) + "' onclick='displayTable(" + i + ")'>" + users[i] + "</text>";
-                finalContents += "<line x1='1%' y1='" + offsetY + "' x2='99%' y2='" + offsetY + "' style='stroke:black; stroke-width:3'></line>"
+                finalContents += "<text id='line-label-" + i + "' x='1%' y='" + (offsetY - 25) + "' onclick='selectLine(" + i + ", 0)'>" + users[i] + "</text>";
+                finalContents += "<line id='line-" + i + "' x1='1%' y1='" + offsetY + "' x2='99%' y2='" + offsetY + "' style='stroke:black; stroke-width:3'></line>"
                 offsetY += 100;
             }
 
@@ -258,7 +301,7 @@
                 drawTicks(i);
             }
 
-            displayTable(0);
+            selectLine(0, 0);
         }
 
         function drawTicks(userIdx) {
@@ -266,9 +309,9 @@
             var offsetY = 75 + 100 * userIdx;
 
             var time;
-            values[userIdx].forEach(function (packetArray) {
+            values[userIdx].forEach(function (packetArray, packetIdx) {
                 time = (packetArray[0] - timeBounds[0]) / (timeBounds[1] - timeBounds[0]);
-                finalContents += "<line x1='" + (time * 98 + 1) + "%' y1='" + (offsetY - 10) + "' x2='" + (time * 98 + 1) + "%' y2='" + (offsetY + 10) + "' style='stroke:black; stroke-width:3'></line>"
+                finalContents += "<line id='tick-" + userIdx + "-" + packetIdx + "' class='tick' onclick='selectLine(" + userIdx + ", " + packetIdx + ")' x1='" + (time * 98 + 1) + "%' y1='" + (offsetY - 10) + "' x2='" + (time * 98 + 1) + "%' y2='" + (offsetY + 10) + "' style='stroke:black; stroke-width:3'></line>"
             });
 
             document.querySelector("#graph").innerHTML += finalContents;
