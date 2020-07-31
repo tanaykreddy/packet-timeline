@@ -423,15 +423,22 @@
             if (prevPacketIdx != -1) {
                 document.querySelector("#row-" + prevPacketIdx).classList.remove("selected");
             }
-            document.querySelector("#row-" + packetIdx).classList.add("selected");
-            document.querySelector("#row-" + packetIdx).scrollIntoViewIfNeeded(true);
 
-            var curTick = document.querySelector("#tick-" + userIdx + "-" + packetIdx);
-            curTick.setAttribute("y1", parseFloat(curTick.getAttribute("y1")) - 10);
-            curTick.setAttribute("y2", parseFloat(curTick.getAttribute("y2")) + 10);
+            if (values[userIdx].length == 0) {
+                prevUserIdx = userIdx;
+                prevPacketIdx = -1;
+            }
+            else {
+                document.querySelector("#row-" + packetIdx).classList.add("selected");
+                document.querySelector("#row-" + packetIdx).scrollIntoViewIfNeeded(true);
 
-            prevUserIdx = userIdx;
-            prevPacketIdx = packetIdx;
+                var curTick = document.querySelector("#tick-" + userIdx + "-" + packetIdx);
+                curTick.setAttribute("y1", parseFloat(curTick.getAttribute("y1")) - 10);
+                curTick.setAttribute("y2", parseFloat(curTick.getAttribute("y2")) + 10);
+
+                prevUserIdx = userIdx;
+                prevPacketIdx = packetIdx;
+            }
         }
 
         function drawLines() {
