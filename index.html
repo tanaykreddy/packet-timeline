@@ -426,7 +426,7 @@
         }
 
         function showFilter(traitIdx) {
-            document.querySelector("#filter-window").innerHTML = "<div>" + traits[prevUserIdx][traitIdx] + " filter</div><input type='text' id='filter-input' placeholder='Target Value'><button type='button' id='filter-button'>Filter Out</button>";
+            document.querySelector("#filter-window").innerHTML = "<div>" + traits[prevUserIdx][traitIdx] + " filter</div><input type='text' id='filter-input' placeholder='Target Value'><button type='button' id='filter-button'>Filter In</button>";
             document.querySelector("#filter-shader").style.display = "block";
 
             document.querySelector("#filter-shader").addEventListener("click", function() {
@@ -440,7 +440,7 @@
                 var target = document.querySelector("#filter-input").value;
 
                 for (var i = 0; i < values[prevUserIdx].length; i++) {
-                    if (values[prevUserIdx][i][traitIdx] == target) {
+                    if (values[prevUserIdx][i][traitIdx] != target) {
                         values[prevUserIdx].splice(i, 1);
                         i--;
                     }
