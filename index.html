@@ -338,6 +338,7 @@
 
                 timeBounds[1] = time;
                 drawLines();
+                selectLine(0, 0);
             }
 
             reader.readAsText(file);
@@ -408,8 +409,6 @@
             for (var i = 0; i < users.length; i++) {
                 drawTicks(i);
             }
-
-            selectLine(0, 0);
         }
 
         function drawTicks(userIdx) {
