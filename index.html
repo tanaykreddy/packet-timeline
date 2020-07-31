@@ -73,7 +73,6 @@
         /* Timeline Box Styling */
         #output-lines {
             clear: left;
-            background-color: rgba(255, 0, 0, 0.144);
             width: 100%;
             height: calc((100% - 190.5px) / 2);
             border-color: black;
@@ -92,12 +91,11 @@
         }
 
         .tick:hover {
-            cursor:pointer;
+            cursor: pointer;
         }
 
         /* Table Box Styling */
         #output-table {
-            background-color: rgba(0, 0, 255, 0.082);
             width: 100%;
             height: calc((100% - 190.5px) / 2);
             border-color: black;
@@ -111,6 +109,34 @@
             border-spacing: 0;
             font-family: 'Courier Prime', monospace;
             font-size: 1.5em;
+        }
+
+        tr {
+            scroll-margin-top: calc(1.5em + 5px);
+        }
+
+        tr:hover {
+            cursor: pointer;
+        }
+
+        tr.selected {
+            background-color: #A4C2F4;
+        }
+
+        tr.selected:hover {
+            background-color: #97B2DB;
+        }
+
+        tr.selected:active {
+            background-color: #839BBF;
+        }
+
+        tr:not(.selected):hover {
+            background-color: #E5E5E5;
+        }
+
+        tr:not(.selected):active {
+            background-color: #CCCCCC;
         }
 
         td,
@@ -129,11 +155,89 @@
             top: 0;
             background-color: white;
             background-clip: padding-box;
-            z-index: 20;
+            z-index: 10;
         }
 
-        .selected td {
-            background-color: #A4C2F4;
+        th:hover {
+            background-color: #E5E5E5;
+        }
+
+        th:active {
+            background-color: #CCCCCC;
+        }
+
+        /* Filter Window Styling */
+        #filter-shader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgb(0, 0, 0, 0.5);
+            z-index: 20;
+            display: none;
+        }
+
+        #filter-window {
+            z-index: 30;
+            background-color: white;
+            font-family: 'Courier Prime', monospace;
+            font-size: 1.5em;
+            border: 5px solid black;
+            white-space: nowrap;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            -webkit-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        }
+
+        #filter-window>div {
+            text-align: center;
+            font-weight: bold;
+            padding: 5px;
+            border-width: 0 0 5px 0;
+            border-color: black;
+            border-style: solid;
+        }
+
+        #filter-input {
+            font-family: 'Courier Prime', monospace;
+            font-size: 1em;
+            float: left;
+            width: 100%;
+            height: 2em;
+            padding: 5px;
+            border-width: 0;
+        }
+
+        #filter-input:hover {
+            background-color: #E5E5E5;
+        }
+
+        #filter-input:focus {
+            background-color: #CCCCCC;
+        }
+
+        #filter-button {
+            font-family: 'Courier Prime', monospace;
+            font-size: 1em;
+            float: left;
+            text-align: center;
+            color: black;
+            background-color: white;
+            border-color: black;
+            padding: 5px;
+            width: 100%;
+            border-width: 5px 0 0 0;
+        }
+
+        #filter-button:hover {
+            background-color: #E5E5E5;
+        }
+
+        #filter-button:active {
+            background-color: #CCCCCC;
         }
     </style>
 </head>
@@ -154,6 +258,10 @@
     </div>
 
     <div id='output-table'></div>
+
+    <div id='filter-shader'>
+        <div id='filter-window'></div>
+    </div>
 
     <script>
 
@@ -239,14 +347,14 @@
         function displayTable(userIdx) {
             var finalContents = "<table><thead><tr>";
 
-            traits[userIdx].forEach(function (trait) {
-                finalContents += "<th>" + trait + "</th>";
+            traits[userIdx].forEach(function (trait, traitIdx) {
+                finalContents += "<th onclick='showFilter(" + traitIdx + ")'>" + trait + "</th>";
             });
 
             finalContents += "</tr></thead><tbody>";
 
             values[userIdx].forEach(function (valueArray, valueIdx) {
-                finalContents += "<tr id='row-" + valueIdx + "'>";
+                finalContents += "<tr id='row-" + valueIdx + "' onclick='selectLine(" + userIdx + ", " + valueIdx + ")'>";
                 valueArray.forEach(function (value) {
                     finalContents += "<td>" + value + "</td>";
                 });
@@ -273,8 +381,8 @@
             if (prevPacketIdx != -1) {
                 document.querySelector("#row-" + prevPacketIdx).classList.remove("selected");
             }
-
             document.querySelector("#row-" + packetIdx).classList.add("selected");
+            document.querySelector("#row-" + packetIdx).scrollIntoViewIfNeeded(true);
 
             var curTick = document.querySelector("#tick-" + userIdx + "-" + packetIdx);
             curTick.setAttribute("y1", parseFloat(curTick.getAttribute("y1")) - 10);
@@ -316,6 +424,80 @@
 
             document.querySelector("#graph").innerHTML += finalContents;
         }
+
+        function showFilter(traitIdx) {
+            document.querySelector("#filter-window").innerHTML = "<div>" + traits[prevUserIdx][traitIdx] + " filter</div><input type='text' id='filter-input' placeholder='Target Value'><button type='button' id='filter-button'>Filter Out</button>";
+            document.querySelector("#filter-shader").style.display = "block";
+
+            document.querySelector("#filter-shader").addEventListener("click", function() {
+                if (!document.querySelector("#filter-window").matches(":hover")) {
+                    document.querySelector("#filter-shader").style.display = "none";
+                }
+            });
+
+            document.querySelector("#filter-button").addEventListener("click", function() {
+                document.querySelector("#filter-shader").style.display = "none";
+                var target = document.querySelector("#filter-input").value;
+
+                for (var i = 0; i < values[prevUserIdx].length; i++) {
+                    if (values[prevUserIdx][i][traitIdx] == target) {
+                        values[prevUserIdx].splice(i, 1);
+                        i--;
+                    }
+                }
+
+                drawLines();
+                displayTable(prevUserIdx);
+                prevPacketIdx = -1;
+                selectLine(prevUserIdx, 0);
+            });
+        }
+
+        window.addEventListener("keydown", function (event) {
+            switch (event.key) {
+                case "ArrowUp":
+                    event.preventDefault();
+
+                    if (prevPacketIdx > 0) {
+                        selectLine(prevUserIdx, prevPacketIdx - 1);
+                    }
+
+                    break;
+                case "ArrowDown":
+                    event.preventDefault();
+
+                    if (prevPacketIdx < values[prevUserIdx].length - 1) {
+                        selectLine(prevUserIdx, prevPacketIdx + 1);
+                    }
+
+                    break;
+
+                case "ArrowLeft":
+                    event.preventDefault();
+
+                    if (prevUserIdx > 0) {
+                        selectLine(prevUserIdx - 1, 0);
+                    }
+
+                    break;
+
+                case "ArrowRight":
+                    event.preventDefault();
+
+                    if (prevUserIdx < values.length - 1) {
+                        selectLine(prevUserIdx + 1, 0);
+                    }
+
+                    break;
+
+                case "Escape":
+                    event.preventDefault();
+
+                    document.querySelector("#filter-shader").style.display = "none";
+
+                    break;
+            }
+        });
     </script>
 </body>
 
