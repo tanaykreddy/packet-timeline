@@ -94,6 +94,10 @@
             cursor: pointer;
         }
 
+        rect {
+            fill: #FFFFFF;
+        }
+
         /* Table Box Styling */
         #output-table {
             width: 100%;
@@ -397,6 +401,11 @@
             finalContents += "</tbody></table>";
 
             document.querySelector("#output-table").innerHTML = finalContents;
+
+            if (prevUserIdx != -1) {
+                document.querySelector("#label-highlight-" + prevUserIdx).style.fill = "#FFFFFF";
+            }
+            document.querySelector("#label-highlight-" + userIdx).style.fill = "#A4C2F4";
         }
 
         function selectLine(userIdx, packetIdx) {
@@ -430,7 +439,8 @@
             var offsetY = 75;
 
             for (var i = 0; i < users.length; i++) {
-                finalContents += "<text id='line-label-" + i + "' x='1%' y='" + (offsetY - 25) + "' onclick='selectLine(" + i + ", 0)'>" + users[i] + "</text>";
+                finalContents += "<rect id='label-highlight-" + i + "' x='1%' y='" + (offsetY - 60) + "' width='" + (users[i].length * 14.40625 + 10) + "' height='calc(1.5em + 10px)'/>"
+                finalContents += "<text id='line-label-" + i + "' x='1%' y='" + (offsetY - 35) + "' transform='translate(5, 0)' onclick='selectLine(" + i + ", 0)'>" + users[i] + "</text>";
                 finalContents += "<line id='line-" + i + "' x1='1%' y1='" + offsetY + "' x2='99%' y2='" + offsetY + "' style='stroke:black; stroke-width:3'></line>"
                 offsetY += 100;
             }
@@ -462,13 +472,13 @@
             document.querySelector("#filter-input").focus();
             document.querySelector("#filter-input").select();
 
-            document.querySelector("#filter-shader").addEventListener("click", function() {
+            document.querySelector("#filter-shader").addEventListener("click", function () {
                 if (!document.querySelector("#filter-window").matches(":hover")) {
                     document.querySelector("#filter-shader").style.display = "none";
                 }
             });
 
-            document.querySelector("#filter-button").addEventListener("click", function() {
+            document.querySelector("#filter-button").addEventListener("click", function () {
                 document.querySelector("#filter-shader").style.display = "none";
                 var target = document.querySelector("#filter-input").value;
 
@@ -486,7 +496,7 @@
                 document.querySelector("#reset-button").style.display = "initial";
             });
 
-            document.querySelector("#filter-input").addEventListener("keydown", function(event) {
+            document.querySelector("#filter-input").addEventListener("keydown", function (event) {
                 if (event.key == "Enter") {
                     event.preventDefault();
                     document.querySelector("#filter-button").click();
