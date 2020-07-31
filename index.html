@@ -239,6 +239,29 @@
         #filter-button:active {
             background-color: #CCCCCC;
         }
+
+        /* Reset Button Styling */
+        #reset-button {
+            font-family: 'Courier Prime', monospace;
+            font-size: 1.5em;
+            position: absolute;
+            top: 96px;
+            right: 10px;
+            color: black;
+            background-color: white;
+            text-align: center;
+            border: none;
+            padding: 5px;
+            display: none;
+        }
+
+        #reset-button:hover {
+            background-color: #E5E5E5;
+        }
+
+        #reset-button:active {
+            background-color: #CCCCCC;
+        }
     </style>
 </head>
 
@@ -263,7 +286,11 @@
         <div id='filter-window'></div>
     </div>
 
+    <button type='button' id='reset-button'>Reset Filters</button>
+
     <script>
+
+        var file;
 
         var users;
         var traits;
@@ -276,7 +303,11 @@
 
         //Processes file uploads
         document.querySelector("#upload-button").addEventListener('input', function () {
-            var file = document.querySelector("#upload-button").files[0];
+            file = document.querySelector("#upload-button").files[0];
+            processFile();
+        });
+        document.querySelector("#reset-button").addEventListener('click', processFile);
+        function processFile() {
             var reader = new FileReader();
             reader.onload = function () {
                 document.querySelector("#upload-label").innerHTML = "Uploaded " + file.name;
@@ -343,7 +374,8 @@
 
             reader.readAsText(file);
             document.querySelector("#upload-button").value = null;
-        });
+            document.querySelector("#reset-button").style.display = "none";
+        }
 
         function displayTable(userIdx) {
             var finalContents = "<table><thead><tr>";
@@ -427,6 +459,8 @@
         function showFilter(traitIdx) {
             document.querySelector("#filter-window").innerHTML = "<div>" + traits[prevUserIdx][traitIdx] + " filter</div><input type='text' id='filter-input' placeholder='Target Value'><button type='button' id='filter-button'>Filter In</button>";
             document.querySelector("#filter-shader").style.display = "block";
+            document.querySelector("#filter-input").focus();
+            document.querySelector("#filter-input").select();
 
             document.querySelector("#filter-shader").addEventListener("click", function() {
                 if (!document.querySelector("#filter-window").matches(":hover")) {
@@ -449,6 +483,14 @@
                 displayTable(prevUserIdx);
                 prevPacketIdx = -1;
                 selectLine(prevUserIdx, 0);
+                document.querySelector("#reset-button").style.display = "initial";
+            });
+
+            document.querySelector("#filter-input").addEventListener("keydown", function(event) {
+                if (event.key == "Enter") {
+                    event.preventDefault();
+                    document.querySelector("#filter-button").click();
+                }
             });
         }
 
